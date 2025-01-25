@@ -52,48 +52,48 @@ export const WalletPopup: React.FC<{
 };
 
 // GuidelinesPopup Component
-export const GuidelinesPopup: React.FC<{ isLoggedIn: boolean }> = ({
-  isLoggedIn,
-}) => {
+export const GuidelinesPopup: React.FC = () => {
   const [showGuidelines, setShowGuidelines] = useState(false);
 
   useEffect(() => {
-    if (isLoggedIn) {
+    // Check if the popup has been shown before
+    const hasSeenGuidelines = localStorage.getItem("hasSeenGuidelines");
+    if (!hasSeenGuidelines) {
       setShowGuidelines(true);
     }
-  }, [isLoggedIn]);
+  }, []);
+
+  const handleDismiss = () => {
+    setShowGuidelines(false);
+    localStorage.setItem("hasSeenGuidelines", "true"); // Set flag in localStorage
+  };
+
+  if (!showGuidelines) {
+    return null; // Do not render the popup if it's not visible
+  }
 
   return (
-    showGuidelines && (
-      <div className="fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50">
-        <div className="bg-purple-800 text-white border-4 border-chart-cyan p-6 rounded-lg text-center pixel-font max-w-lg">
-          <h2 className="text-2xl text-chart-cyan mb-4">Guidelines</h2>
-          <p className="mb-6">
-            Follow these steps to ensure a safe trading experience:
-            <br />
-            <br />
-            1. Choose a memecoin to trade.
-            <br />
-            <br />
-            2. Monitor bonding curves carefully.
-            <br />
-            <br />
-            3. Always double-check fees.
-            <br />
-            <br />
-            
-          </p>
-          <button
-            className="bg-chart-cyan text-gray-900 font-bold px-4 py-2 border-2 border-gray-900 rounded hover:bg-gray-300 transition-transform transform hover:scale-105"
-            onClick={() => setShowGuidelines(false)}
-          >
-            Got it!
-          </button>
-        </div>
-      </div>
-    )
+    <div className="fixed bottom-4 right-4 bg-purple-800 text-white border-4 border-chart-cyan p-6 rounded-lg text-center pixel-font max-w-sm shadow-lg z-50 pointer-events-auto">
+      <h2 className="text-2xl text-chart-cyan mb-4">Guidelines</h2>
+      <p className="mb-6 text-sm">
+        Follow these steps to ensure a safe trading experience:
+        <br />
+        1. Choose a memecoin to trade.
+        <br />
+        2. Monitor bonding curves carefully.
+        <br />
+        3. Always double-check fees.
+      </p>
+      <button
+        className="bg-chart-cyan text-gray-900 font-bold px-4 py-2 border-2 border-gray-900 rounded hover:bg-gray-300 transition-transform transform hover:scale-105"
+        onClick={handleDismiss}
+      >
+        Got it!
+      </button>
+    </div>
   );
 };
+
 
 // Navbar Component
 export const Navbar = () => {
