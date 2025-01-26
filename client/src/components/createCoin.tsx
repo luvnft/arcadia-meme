@@ -14,7 +14,7 @@ export const CreateCoin: React.FC = () => {
   const navigate = useNavigate();
 
   const coinLogos: Record<string, string> = {
-    SOL: "https://cryptologos.cc/logos/solana-sol-logo.png", // Replace with your preferred logo URL
+    SOL: "https://cryptologos.cc/logos/solana-sol-logo.png",
     ETH: "https://cryptologos.cc/logos/ethereum-eth-logo.png",
     APT: "https://cryptologos.cc/logos/aptos-apt-logo.png",
     EDU: "https://via.placeholder.com/100?text=EDU", // Placeholder for EDU
@@ -32,12 +32,21 @@ export const CreateCoin: React.FC = () => {
       alert("Please connect your wallet before proceeding.");
       return;
     }
+
+    if (!name || !ticker || !description) {
+      alert("Please fill out all required fields.");
+      return;
+    }
+
     setShowPopup(true); // Show confirmation popup
   };
 
   const handleTradeConfirmation = () => {
     setShowPopup(false);
-    navigate(/trade/${ticker}); // Navigate to the TradingView page
+
+    // Ensure the ticker is valid before navigating
+    const validTicker = ticker.trim() || "DEFAULT";
+    navigate(/trade/${validTicker.toUpperCase()}); // Navigate to the TradingView page
   };
 
   return (
@@ -174,7 +183,7 @@ export const CreateCoin: React.FC = () => {
 
             {/* Cost Information */}
             <p className="text-sm text-gray-400 text-center">
-              Cost to deploy: ~{0.02*5} {token}
+              Cost to deploy: ~{(0.02 * 5).toFixed(2)} {token}
             </p>
           </div>
         </div>
