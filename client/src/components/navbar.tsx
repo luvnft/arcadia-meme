@@ -7,46 +7,48 @@ export const WalletPopup: React.FC<{
   walletAddress: string | null;
   isLoggedIn: boolean;
 }> = ({ walletAddress, isLoggedIn }) => {
-  const [showPopup, setShowPopup] = useState(!walletAddress && !isLoggedIn);
+  const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
-    if (!walletAddress && !isLoggedIn) {
+    if (!sessionStorage.getItem("walletPopupDismissed") && !walletAddress && !isLoggedIn) {
       setShowPopup(true);
-    } else if (walletAddress) {
-      setShowPopup(false);
     }
   }, [walletAddress, isLoggedIn]);
 
+  const handleDismiss = () => {
+    setShowPopup(false);
+    sessionStorage.setItem("walletPopupDismissed", "true");
+  };
+
+  if (!showPopup) return null;
+
   return (
-    showPopup && (
-      <div className="fixed bottom-4 right-4 bg-gray-800 text-white border-4 border-yellow-400 p-6 rounded-lg text-center pixel-font max-w-sm shadow-lg z-50">
-        <h2 className="text-2xl text-yellow-400 mb-4">Wallet Not Connected</h2>
-        <p className="mb-6">
-          Please connect your wallet to start trading memecoins. Choose a wallet
-          provider to continue!
-        </p>
-        <div className="flex justify-center gap-4">
-          <button
-            className="bg-yellow-400 text-gray-900 font-bold px-4 py-2 border-2 border-gray-900 rounded hover:bg-yellow-300 transition-transform transform hover:scale-105"
-            onClick={() => window.open("https://petra.app", "_blank")}
-          >
-            Install Petra
-          </button>
-          <button
-            className="bg-yellow-400 text-gray-900 font-bold px-4 py-2 border-2 border-gray-900 rounded hover:bg-yellow-300 transition-transform transform hover:scale-105"
-            onClick={() => window.open("https://martianwallet.xyz", "_blank")}
-          >
-            Install Martian
-          </button>
-        </div>
+    <div className="fixed bottom-4 right-4 bg-gray-800 text-white border-4 border-yellow-400 p-6 rounded-lg text-center pixel-font max-w-sm shadow-lg z-50">
+      <h2 className="text-2xl text-yellow-400 mb-4">Wallet Not Connected</h2>
+      <p className="mb-6 text-sm">
+        Please connect your wallet to start trading memecoins.
+      </p>
+      <div className="flex justify-center gap-4">
         <button
-          className="mt-4 text-sm text-gray-400 underline hover:text-white"
-          onClick={() => setShowPopup(false)}
+          className="bg-yellow-400 text-gray-900 font-bold px-4 py-2 border-2 border-gray-900 rounded hover:bg-yellow-300 transition-transform transform hover:scale-105"
+          onClick={() => window.open("https://petra.app", "_blank")}
         >
-          Dismiss
+          Install Petra
+        </button>
+        <button
+          className="bg-yellow-400 text-gray-900 font-bold px-4 py-2 border-2 border-gray-900 rounded hover:bg-yellow-300 transition-transform transform hover:scale-105"
+          onClick={() => window.open("https://martianwallet.xyz", "_blank")}
+        >
+          Install Martian
         </button>
       </div>
-    )
+      <button
+        className="mt-4 text-sm text-gray-400 underline hover:text-white"
+        onClick={handleDismiss}
+      >
+        Dismiss
+      </button>
+    </div>
   );
 };
 
@@ -55,24 +57,20 @@ export const GuidelinesPopup: React.FC = () => {
   const [showGuidelines, setShowGuidelines] = useState(false);
 
   useEffect(() => {
-    // Check if the popup has been shown before
-    const hasSeenGuidelines = localStorage.getItem("hasSeenGuidelines");
-    if (!hasSeenGuidelines) {
+    if (!localStorage.getItem("hasSeenGuidelines")) {
       setShowGuidelines(true);
     }
   }, []);
 
   const handleDismiss = () => {
     setShowGuidelines(false);
-    localStorage.setItem("hasSeenGuidelines", "true"); // Set flag in localStorage
+    localStorage.setItem("hasSeenGuidelines", "true");
   };
 
-  if (!showGuidelines) {
-    return null; // Do not render the popup if it's not visible
-  }
+  if (!showGuidelines) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 bg-purple-800 text-white border-4 border-chart-cyan p-6 rounded-lg text-center pixel-font max-w-sm shadow-lg z-50 pointer-events-auto">
+    <div className="fixed bottom-4 right-4 bg-purple-800 text-white border-4 border-chart-cyan p-6 rounded-lg text-center pixel-font max-w-sm shadow-lg z-50">
       <h2 className="text-2xl text-chart-cyan mb-4">Guidelines</h2>
       <p className="mb-6 text-sm">
         Follow these steps to ensure a safe trading experience:
@@ -93,9 +91,8 @@ export const GuidelinesPopup: React.FC = () => {
   );
 };
 
-
 // Navbar Component
-export const Navbar = () => {
+export const Navbar: React.FC = () => {
   const {
     walletAddress,
     walletProvider,
@@ -107,16 +104,14 @@ export const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showWalletDropdown, setShowWalletDropdown] = useState(false);
 
-  const formatAddress = (address: string) => {
-    return ${address.slice(0, 6)}...${address.slice(-4)};
-  };
+  const formatAddress = (address: string) => ${address.slice(0, 6)}...${address.slice(-4)};
 
   const handleWalletConnect = async (provider: string) => {
     try {
       await connectWallet(provider);
       setShowWalletDropdown(false);
     } catch (err) {
-      console.error(err);
+      console.error("Error connecting wallet:", err);
     }
   };
 
@@ -128,16 +123,10 @@ export const Navbar = () => {
 
   return (
     <>
-      {/* Wallet Popup */}
-      <WalletPopup
-        walletAddress={walletAddress}
-        isLoggedIn={isLoggedIn}
-      />
+      <WalletPopup walletAddress={walletAddress} isLoggedIn={isLoggedIn} />
       <GuidelinesPopup />
 
-      {/* Navbar */}
       <nav className="bg-arcade-black text-meme-green px-6 py-4 flex justify-between items-center border-b border-chart-cyan/30">
-        {/* Logo */}
         <div className="flex items-center">
           <img className="w-12 h-12" src="/arcadia-meme-logo.png" alt="logo" />
           <a
@@ -148,7 +137,6 @@ export const Navbar = () => {
           </a>
         </div>
 
-        {/* Wallet Connection */}
         <div className="relative">
           {!window.aptos && !window.martian ? (
             <button
@@ -171,12 +159,8 @@ export const Navbar = () => {
               {showWalletDropdown && (
                 <div className="absolute right-0 mt-2 w-48 bg-arcade-black border border-chart-cyan/30 rounded-lg shadow-xl z-20">
                   <div className="py-2 px-4">
-                    <p className="text-xs text-meme-green/70">
-                      Connected to {walletProvider}
-                    </p>
-                    <p className="text-xs text-meme-green/50 break-all">
-                      {walletAddress}
-                    </p>
+                    <p className="text-xs text-meme-green/70">Connected to {walletProvider}</p>
+                    <p className="text-xs text-meme-green/50 break-all">{walletAddress}</p>
                   </div>
                   <button
                     onClick={disconnect}
@@ -232,7 +216,6 @@ export const Navbar = () => {
           )}
         </div>
 
-        {/* Error Message */}
         {error && (
           <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-crash-red text-white px-4 py-2 rounded-lg shadow-lg">
             {error}
