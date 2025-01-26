@@ -20,7 +20,7 @@ export const LandingSection: React.FC = () => {
       <div className="absolute inset-0 pointer-events-none">
         <img
           key={gifKey} // Use the key to force re-render
-          src="/8-bit-fighting.gif"
+          src="/graph-landing.gif"
           alt="background gif"
           className="w-500 h-175"
         />

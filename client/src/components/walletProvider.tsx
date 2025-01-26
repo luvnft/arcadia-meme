@@ -37,7 +37,6 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const checkExistingConnection = async () => {
       try {
-        // Check Petra connection
         if (window.aptos) {
           try {
             const account = await window.aptos.account();
@@ -51,7 +50,6 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        // Check Martian connection
         if (window.martian) {
           try {
             const account = await window.martian.account();
@@ -86,33 +84,23 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         if (!window.aptos) {
           throw new Error("Petra wallet not found! Please install it first.");
         }
-        try {
-          response = await window.aptos.connect();
-          setWalletAddress(response.address);
-          setWalletProvider("Petra");
-        } catch (err) {
-          console.error("Error connecting to Petra:", err);
-          throw new Error("Failed to connect to Petra wallet");
-        }
+        response = await window.aptos.connect();
+        setWalletAddress(response.address);
+        setWalletProvider("Petra");
       } else if (provider === "Martian") {
         if (!window.martian) {
           throw new Error("Martian wallet not found! Please install it first.");
         }
-        try {
-          response = await window.martian.connect();
-          setWalletAddress(response.address);
-          setWalletProvider("Martian");
-        } catch (err) {
-          console.error("Error connecting to Martian:", err);
-          throw new Error("Failed to connect to Martian wallet");
-        }
+        response = await window.martian.connect();
+        setWalletAddress(response.address);
+        setWalletProvider("Martian");
       } else {
         throw new Error("Unsupported wallet provider");
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Wallet connection failed";
       setError(errorMessage);
-      throw new Error(errorMessage);
+      console.error(errorMessage);
     } finally {
       setIsConnecting(false);
     }
@@ -131,7 +119,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to disconnect wallet";
       setError(errorMessage);
-      throw new Error(errorMessage);
+      console.error(errorMessage);
     }
   };
 
@@ -144,21 +132,11 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       let hash: string;
 
       if (walletProvider === "Petra") {
-        try {
-          const pendingTransaction = await window.aptos.signAndSubmitTransaction(transaction);
-          hash = pendingTransaction.hash;
-        } catch (err) {
-          console.error("Transaction signing failed on Petra:", err);
-          throw new Error("Failed to sign transaction on Petra");
-        }
+        const pendingTransaction = await window.aptos.signAndSubmitTransaction(transaction);
+        hash = pendingTransaction.hash;
       } else if (walletProvider === "Martian") {
-        try {
-          const pendingTransaction = await window.martian.signAndSubmitTransaction(transaction);
-          hash = pendingTransaction.hash;
-        } catch (err) {
-          console.error("Transaction signing failed on Martian:", err);
-          throw new Error("Failed to sign transaction on Martian");
-        }
+        const pendingTransaction = await window.martian.signAndSubmitTransaction(transaction);
+        hash = pendingTransaction.hash;
       } else {
         throw new Error("Unsupported wallet provider");
       }
@@ -167,6 +145,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Transaction failed";
       setError(errorMessage);
+      console.error(errorMessage);
       throw new Error(errorMessage);
     }
   };
