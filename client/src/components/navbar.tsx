@@ -6,8 +6,7 @@ import { useWallet } from "./walletProvider";
 export const WalletPopup: React.FC<{
   walletAddress: string | null;
   isLoggedIn: boolean;
-  setIsLoggedIn: (status: boolean) => void;
-}> = ({ walletAddress, isLoggedIn, setIsLoggedIn }) => {
+}> = ({ walletAddress, isLoggedIn }) => {
   const [showPopup, setShowPopup] = useState(!walletAddress && !isLoggedIn);
 
   useEffect(() => {
@@ -133,10 +132,8 @@ export const Navbar = () => {
       <WalletPopup
         walletAddress={walletAddress}
         isLoggedIn={isLoggedIn}
-        setIsLoggedIn={setIsLoggedIn}
       />
-      {/* Guidelines Popup */}
-      <GuidelinesPopup isLoggedIn={isLoggedIn} />
+      <GuidelinesPopup />
 
       {/* Navbar */}
       <nav className="bg-arcade-black text-meme-green px-6 py-4 flex justify-between items-center border-b border-chart-cyan/30">
