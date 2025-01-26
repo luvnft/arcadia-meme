@@ -1,14 +1,24 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useWallet } from "./walletProvider";
 
 export const CreateCoin: React.FC = () => {
+  const { walletAddress } = useWallet();
   const [name, setName] = useState("");
   const [ticker, setTicker] = useState("");
   const [description, setDescription] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [showPopup, setShowPopup] = useState(false);
-  const [confirmTrade, setConfirmTrade] = useState(false);
+  const [amount, setAmount] = useState("0.0");
+  const [token, setToken] = useState("SOL"); // Default token
   const navigate = useNavigate();
+
+  const coinLogos: Record<string, string> = {
+    SOL: "https://cryptologos.cc/logos/solana-sol-logo.png", // Replace with your preferred logo URL
+    ETH: "https://cryptologos.cc/logos/ethereum-eth-logo.png",
+    APT: "https://cryptologos.cc/logos/aptos-apt-logo.png",
+    EDU: "https://via.placeholder.com/100?text=EDU", // Placeholder for EDU
+  };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -18,13 +28,16 @@ export const CreateCoin: React.FC = () => {
 
   const handleCreateCoin = (e: React.FormEvent) => {
     e.preventDefault();
-    setShowPopup(true); // Show confirmation popup after clicking "Create Coin"
+    if (!walletAddress) {
+      alert("Please connect your wallet before proceeding.");
+      return;
+    }
+    setShowPopup(true); // Show confirmation popup
   };
 
   const handleTradeConfirmation = () => {
-    setConfirmTrade(true);
     setShowPopup(false);
-    navigate(`/trade/${ticker}`); // Navigate to the TradingView page
+    navigate(/trade/${ticker}); // Navigate to the TradingView page
   };
 
   return (
@@ -79,7 +92,7 @@ export const CreateCoin: React.FC = () => {
               <p className="text-gray-400 mb-2">Drag and drop an image or video</p>
               <input
                 type="file"
-                accept="image/*,video/*"
+                accept="image/,video/"
                 onChange={handleFileUpload}
                 className="hidden"
                 id="file-upload"
@@ -101,35 +114,68 @@ export const CreateCoin: React.FC = () => {
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full bg-purple-600 hover:bg-purple-500 text-white py-3 rounded-lg font-bold transition-transform transform hover:scale-105"
+            className={`w-full py-3 rounded-lg font-bold transition-transform transform ${
+              walletAddress
+                ? "bg-purple-600 hover:bg-purple-500 text-white hover:scale-105"
+                : "bg-gray-600 text-gray-400 cursor-not-allowed"
+            }`}
+            disabled={!walletAddress}
           >
-            Create Coin
+            {walletAddress ? "Create Coin" : "Connect Wallet to Proceed"}
           </button>
-          <p className="text-sm text-gray-500 mt-2">
-            When your coin completes its bonding curve, you receive 0.5 SOL.
-          </p>
         </form>
       </div>
 
       {/* Confirmation Popup */}
       {showPopup && (
-        <div className="fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50">
-          <div className="bg-gray-800 text-white p-6 rounded-lg shadow-lg max-w-sm w-full">
-            <h2 className="text-xl text-center mb-4">
-              Confirm trade for [{ticker || "SRS"}]?
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 px-4">
+          <div className="bg-gray-800 text-white p-6 rounded-lg shadow-lg max-w-md w-full">
+            <h2 className="text-2xl font-bold text-center mb-4">
+              Choose how many [{ticker}] you want to buy (optional)
             </h2>
+            <p className="text-sm text-gray-400 text-center mb-6">
+              Tip: Buying a small amount of coins helps protect your coin from
+              snipers.
+            </p>
+
+            {/* Logo and Input Section */}
+            <div className="flex items-center gap-4 mb-6">
+              <img
+                src={coinLogos[token]}
+                alt={token}
+                className="w-12 h-12 rounded-full border border-gray-600"
+              />
+              <input
+                type="text"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0.0 (optional)"
+                className="flex-1 bg-gray-700 text-white px-4 py-2 rounded border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <select
+                value={token}
+                onChange={(e) => setToken(e.target.value)}
+                className="bg-gray-700 text-white px-4 py-2 rounded border border-gray-600 focus:outline-none"
+              >
+                <option value="SOL">SOL</option>
+                <option value="ETH">ETH</option>
+                <option value="APT">APT</option>
+                <option value="EDU">EDU</option>
+              </select>
+            </div>
+
+            {/* Confirm Button */}
             <button
-              className="w-full bg-green-600 hover:bg-green-500 text-white py-3 rounded-lg font-bold transition-transform transform hover:scale-105 mb-4"
               onClick={handleTradeConfirmation}
+              className="w-full bg-purple-600 hover:bg-purple-500 text-white py-3 rounded-lg font-bold transition-transform transform hover:scale-105 mb-4"
             >
-              Confirm
+              Create Coin
             </button>
-            <button
-              className="w-full bg-red-600 hover:bg-red-500 text-white py-3 rounded-lg font-bold transition-transform transform hover:scale-105"
-              onClick={() => setShowPopup(false)}
-            >
-              Cancel
-            </button>
+
+            {/* Cost Information */}
+            <p className="text-sm text-gray-400 text-center">
+              Cost to deploy: ~{0.02*5} {token}
+            </p>
           </div>
         </div>
       )}
