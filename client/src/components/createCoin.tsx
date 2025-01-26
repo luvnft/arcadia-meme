@@ -37,7 +37,7 @@ export const CreateCoin: React.FC = () => {
 
   const handleTradeConfirmation = () => {
     setShowPopup(false);
-    navigate(`/trade/${ticker}`); // Navigate to the TradingView page
+    navigate(/trade/${ticker}); // Navigate to the TradingView page
   };
 
   return (
@@ -92,7 +92,7 @@ export const CreateCoin: React.FC = () => {
               <p className="text-gray-400 mb-2">Drag and drop an image or video</p>
               <input
                 type="file"
-                accept="image/*,video/*"
+                accept="image/,video/"
                 onChange={handleFileUpload}
                 className="hidden"
                 id="file-upload"
