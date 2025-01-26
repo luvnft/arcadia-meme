@@ -104,7 +104,7 @@ export const Navbar: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showWalletDropdown, setShowWalletDropdown] = useState(false);
 
-  const formatAddress = (address: string) => ${address.slice(0, 6)}...${address.slice(-4)};
+  const formatAddress = (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`;
 
   const handleWalletConnect = async (provider: string) => {
     try {

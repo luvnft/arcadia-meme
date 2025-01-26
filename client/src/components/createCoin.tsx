@@ -46,7 +46,7 @@ export const CreateCoin: React.FC = () => {
 
     // Ensure the ticker is valid before navigating
     const validTicker = ticker.trim() || "DEFAULT";
-    navigate(/trade/${validTicker.toUpperCase()}); // Navigate to the TradingView page
+    navigate(`/trade/${validTicker.toUpperCase()}`); // Navigate to the TradingView page
   };
 
   return (

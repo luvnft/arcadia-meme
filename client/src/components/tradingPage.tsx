@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState, useMemo } from "react";
+import { PopupMessage } from "./popUp";
 import TradingViewWidget from "./tradingWidget";
 
 interface CoinData {
@@ -13,7 +14,14 @@ interface CoinData {
   address: string; // Contract address
 }
 
-const fallbackCoins = [
+interface Position {
+  type: "Buy" | "Sell";
+  amount: number;
+  entryPrice: number;
+  pnl: number; // Profit and Loss
+}
+
+const fallbackCoins: CoinData[] = [
   {
     name: "Ethereum",
     ticker: "ETH",
@@ -60,132 +68,124 @@ export const TradingPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Retrieve data from location or fallback to a random coin
+  const [popup, setPopup] = useState<{
+    type: "error" | "warning" | "info";
+    message: string;
+    image?: string; // Optional image property
+  } | null>(null);
+
+  const [positions, setPositions] = useState<Position[]>([]); // Start with no positions
+  const [tradeType, setTradeType] = useState<"buy" | "sell" | null>(null);
+  const [tradeAmount, setTradeAmount] = useState<number | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showCenteredGif, setShowCenteredGif] = useState(false); // Centered GIF state
+
   const coinData = location.state as CoinData | null;
-  const randomFallbackCoin =
-    fallbackCoins[Math.floor(Math.random() * fallbackCoins.length)];
+  const randomFallbackCoin = useMemo(
+    () => fallbackCoins[Math.floor(Math.random() * fallbackCoins.length)],
+    []
+  );
 
   useEffect(() => {
     if (!coinData) {
-      console.warn("Coin data is null, falling back to random coin.");
+      setPopup({
+        type: "warning",
+        message: "Trading data is unavailable. Showing a fallback coin.",
+      });
     }
   }, [coinData]);
 
   const data = coinData || randomFallbackCoin;
 
-  if (!data) {
-    return (
-      <div className="bg-gray-900 text-white min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <p className="text-red-500 font-bold text-lg">
-            Failed to load trading data. Redirecting to the home page...
-          </p>
-          <button
-            onClick={() => navigate("/")}
-            className="px-6 py-3 bg-blue-500 text-white font-bold rounded-lg hover:bg-blue-600"
-          >
-            Go Back Home
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const triggerCenteredGif = () => {
+    setShowCenteredGif(true);
+    setTimeout(() => setShowCenteredGif(false), 3000); // Show GIF for 3 seconds
+  };
+
+  const handleTrade = () => {
+    if (!tradeAmount || tradeAmount <= 0) {
+      setPopup({
+        type: "error",
+        message: "Please enter a valid amount to trade.",
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+
+    setTimeout(() => {
+      const newPosition: Position = {
+        type: tradeType === "buy" ? "Buy" : "Sell",
+        amount: tradeAmount,
+        entryPrice: Math.random() * 1000 + 1000, // Random price for simplicity
+        pnl: Math.random() * 200 - 100, // Random PnL
+      };
+
+      setPositions((prevPositions) => [...prevPositions, newPosition]); // Add the new position
+      setTradeAmount(null); // Reset trade input
+      setIsProcessing(false);
+
+      setPopup({
+        type: "info",
+        message: `Successfully ${tradeType === "buy" ? "bought" : "sold"} ${
+          tradeAmount
+        } ${data.ticker}!`,
+        image: "/1000x-ape.gif", // Add the GIF here
+      });
+
+      triggerCenteredGif(); // Show centered GIF on trade success
+    }, 2000);
+  };
+
+  const handleExitAll = () => {
+    const totalPnL = positions.reduce((acc, pos) => acc + pos.pnl, 0); // Sum up all PnL
+    setPositions([]); // Clear all positions
+    setPopup({
+      type: totalPnL >= 0 ? "info" : "error",
+      message: `Exited all positions with a ${
+        totalPnL >= 0 ? "profit" : "loss"
+      } of $${totalPnL.toFixed(2)}!`,
+      image: totalPnL >= 0 ? "/1000x-ape.gif" : undefined, // Show GIF if profit
+    });
+
+    if (totalPnL >= 0) {
+      triggerCenteredGif(); // Show centered GIF on profit
+    }
+  };
 
   return (
-    <div className="bg-gray-900 text-white min-h-screen flex flex-col">
-      {/* Header Section */}
-      <div className="flex justify-between items-center p-4 border-b border-gray-700">
-        <div className="flex items-center space-x-2">
-          <a href="/" className="text-gray-400 text-sm underline">
-            [go back]
-          </a>
-          <span className="font-bold text-lg">
-            {data.name.toUpperCase()} ({data.ticker.toUpperCase()})
-          </span>
+    <div className="bg-gray-900 text-white min-h-screen flex flex-col relative">
+      {/* Centered GIF Overlay */}
+      {showCenteredGif && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
+          <img src="/1000x-ape.gif" alt="Celebration" className="w-64 h-64 animate-bounce" />
         </div>
-        <div className="flex space-x-4 text-gray-400 text-sm">
-          <a href="#" className="hover:text-white">
-            how it works
-          </a>
-          <a href="#" className="hover:text-white">
-            advanced
-          </a>
-          <a href="#" className="hover:text-white">
-            support
-          </a>
-        </div>
-      </div>
+      )}
+
+      {/* Popup Message */}
+      {popup && (
+        <PopupMessage
+          type={popup.type}
+          message={popup.message}
+          image={popup.image}
+          onDismiss={() => setPopup(null)}
+        />
+      )}
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:flex-row">
-        {/* Trading Chart Section */}
+        {/* Existing Content */}
         <div className="flex-1 p-6">
           <TradingViewWidget symbol={data.ticker.toUpperCase()} />
         </div>
 
-        {/* Trading Details Section */}
-        <div className="lg:w-1/3 bg-gray-800 p-6 rounded-lg shadow-lg space-y-6">
-          {/* Trade Form */}
+        {/* Trade Form and Positions */}
+        <div className="lg:w-1/3 w-full bg-gray-800 p-6 rounded-lg shadow-lg space-y-6">
           <div className="bg-gray-700 p-4 rounded-lg">
-            <div className="flex items-center justify-between mb-4">
-              <button className="bg-green-500 text-gray-900 px-4 py-2 rounded-lg font-bold">
-                Buy
-              </button>
-              <button className="bg-gray-600 text-gray-400 px-4 py-2 rounded-lg font-bold">
-                Sell
-              </button>
-            </div>
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium">
-                  Amount ({data.ticker.toUpperCase()})
-                </span>
-                <input
-                  type="number"
-                  placeholder="0.0"
-                  className="flex-1 px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-600"
-                />
-                <img
-                  src={data.logo}
-                  alt={data.name}
-                  className="w-8 h-8 rounded-lg"
-                />
-              </div>
-              <div className="flex justify-between space-x-2">
-                <button className="px-4 py-2 bg-gray-600 text-gray-400 rounded-lg">
-                  Reset
-                </button>
-                <div className="space-x-2">
-                  <button className="px-4 py-2 bg-gray-600 text-gray-400 rounded-lg">
-                    0.1
-                  </button>
-                  <button className="px-4 py-2 bg-gray-600 text-gray-400 rounded-lg">
-                    0.5
-                  </button>
-                  <button className="px-4 py-2 bg-gray-600 text-gray-400 rounded-lg">
-                    1
-                  </button>
-                </div>
-              </div>
-              <button className="w-full px-4 py-2 bg-green-500 text-gray-900 rounded-lg font-bold">
-                Place Trade
-              </button>
-            </div>
-          </div>
-
-          {/* Coin Details */}
-          <div className="bg-gray-700 p-4 rounded-lg">
-            <div className="flex items-center mb-4">
-              <img
-                src={data.logo}
-                alt={data.name}
-                className="w-12 h-12 rounded-lg mr-4"
-              />
-              <div>
-                <h3 className="text-lg font-bold">{data.name.toUpperCase()}</h3>
-                <p className="text-sm text-gray-400">{data.description}</p>
-              </div>
-            </div>
+            {/* Trade Form */}
+            <button onClick={handleExitAll} disabled={positions.length === 0}>
+              Exit All
+            </button>
           </div>
         </div>
       </div>
