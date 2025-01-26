@@ -78,7 +78,6 @@ export const TradingPage: React.FC = () => {
   const [tradeType, setTradeType] = useState<"buy" | "sell" | null>(null);
   const [tradeAmount, setTradeAmount] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showCenteredGif, setShowCenteredGif] = useState(false); // Centered GIF state
 
   const coinData = location.state as CoinData | null;
   const randomFallbackCoin = useMemo(
@@ -97,11 +96,6 @@ export const TradingPage: React.FC = () => {
 
   const data = coinData || randomFallbackCoin;
 
-  const triggerCenteredGif = () => {
-    setShowCenteredGif(true);
-    setTimeout(() => setShowCenteredGif(false), 3000); // Show GIF for 3 seconds
-  };
-
   const handleTrade = () => {
     if (!tradeAmount || tradeAmount <= 0) {
       setPopup({
@@ -113,6 +107,7 @@ export const TradingPage: React.FC = () => {
 
     setIsProcessing(true);
 
+    // Simulate trade processing delay
     setTimeout(() => {
       const newPosition: Position = {
         type: tradeType === "buy" ? "Buy" : "Sell",
@@ -132,8 +127,6 @@ export const TradingPage: React.FC = () => {
         } ${data.ticker}!`,
         image: "/1000x-ape.gif", // Add the GIF here
       });
-
-      triggerCenteredGif(); // Show centered GIF on trade success
     }, 2000);
   };
 
@@ -147,21 +140,10 @@ export const TradingPage: React.FC = () => {
       } of $${totalPnL.toFixed(2)}!`,
       image: totalPnL >= 0 ? "/1000x-ape.gif" : undefined, // Show GIF if profit
     });
-
-    if (totalPnL >= 0) {
-      triggerCenteredGif(); // Show centered GIF on profit
-    }
   };
 
   return (
-    <div className="bg-gray-900 text-white min-h-screen flex flex-col relative">
-      {/* Centered GIF Overlay */}
-      {showCenteredGif && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
-          <img src="/1000x-ape.gif" alt="Celebration" className="w-64 h-64 animate-bounce" />
-        </div>
-      )}
-
+    <div className="bg-gray-900 text-white min-h-screen flex flex-col">
       {/* Popup Message */}
       {popup && (
         <PopupMessage
@@ -172,20 +154,156 @@ export const TradingPage: React.FC = () => {
         />
       )}
 
+      {/* Header Section */}
+      <div className="flex justify-between items-center p-4 border-b border-gray-700">
+        <div className="flex items-center space-x-2">
+          <span
+            onClick={() => navigate("/")}
+            className="text-gray-400 text-sm underline cursor-pointer"
+          >
+            [go back]
+          </span>
+          <span className="font-bold text-lg">
+            {data.name.toUpperCase()} ({data.ticker.toUpperCase()})
+          </span>
+        </div>
+        <div className="flex space-x-4 text-gray-400 text-sm">
+          <a href="#" className="hover:text-white">
+            how it works
+          </a>
+          <a href="#" className="hover:text-white">
+            advanced
+          </a>
+          <a href="#" className="hover:text-white">
+            support
+          </a>
+        </div>
+      </div>
+
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:flex-row">
-        {/* Existing Content */}
+        {/* Trading Chart Section */}
         <div className="flex-1 p-6">
           <TradingViewWidget symbol={data.ticker.toUpperCase()} />
         </div>
 
-        {/* Trade Form and Positions */}
+        {/* Trading Details Section */}
         <div className="lg:w-1/3 w-full bg-gray-800 p-6 rounded-lg shadow-lg space-y-6">
+          {/* Trade Form */}
           <div className="bg-gray-700 p-4 rounded-lg">
-            {/* Trade Form */}
-            <button onClick={handleExitAll} disabled={positions.length === 0}>
-              Exit All
-            </button>
+            <div className="flex items-center justify-between mb-4">
+              <button
+                onClick={() => setTradeType("buy")}
+                className={`px-4 py-2 rounded-lg font-bold ${
+                  tradeType === "buy"
+                    ? "bg-green-600 text-gray-900 scale-105"
+                    : "bg-green-500 hover:bg-green-600 hover:scale-105"
+                }`}
+              >
+                Buy
+              </button>
+              <button
+                onClick={() => setTradeType("sell")}
+                className={`px-4 py-2 rounded-lg font-bold ${
+                  tradeType === "sell"
+                    ? "bg-red-600 text-gray-900 scale-105"
+                    : "bg-gray-600 hover:bg-red-600 hover:scale-105"
+                }`}
+              >
+                Sell
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium">
+                  Amount ({data.ticker.toUpperCase()})
+                </span>
+                <input
+                  type="number"
+                  value={tradeAmount || ""}
+                  onChange={(e) => setTradeAmount(parseFloat(e.target.value))}
+                  placeholder="Enter amount"
+                  className="flex-1 px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-600 focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+              <button
+                onClick={handleTrade}
+                disabled={!tradeType || isProcessing}
+                className={`w-full px-4 py-2 rounded-lg font-bold ${
+                  isProcessing
+                    ? "bg-gray-500 text-gray-400"
+                    : "bg-green-500 hover:bg-green-600 hover:scale-105"
+                }`}
+              >
+                {isProcessing ? "Processing..." : "Place Trade"}
+              </button>
+            </div>
+          </div>
+
+          {/* Coin Details */}
+          <div className="bg-gray-700 p-4 rounded-lg space-y-6">
+            <div className="flex items-center">
+              <img
+                src={data.logo}
+                alt={`${data.name} logo`}
+                className="w-12 h-12 rounded-lg mr-4"
+              />
+              <div>
+                <h3 className="text-lg font-bold">{data.name.toUpperCase()}</h3>
+                <p className="text-sm text-gray-400">{data.description}</p>
+              </div>
+            </div>
+
+            {/* User Positions */}
+            <div className="bg-gray-800 p-4 rounded-lg">
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="text-lg font-bold">Your Positions</h4>
+                <button
+                  onClick={handleExitAll}
+                  disabled={positions.length === 0}
+                  className={`px-4 py-2 rounded-lg font-bold ${
+                    positions.length === 0
+                      ? "bg-gray-500 text-gray-400 cursor-not-allowed"
+                      : "bg-red-500 hover:bg-red-600"
+                  }`}
+                >
+                  Exit All
+                </button>
+              </div>
+              {positions.length > 0 ? (
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr>
+                      <th className="text-left">Type</th>
+                      <th className="text-left">Amount</th>
+                      <th className="text-left">Entry Price</th>
+                      <th className="text-left">PnL</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {positions.map((position, index) => (
+                      <tr key={index}>
+                        <td>{position.type}</td>
+                        <td>{position.amount.toFixed(2)}</td>
+                        <td>${position.entryPrice.toFixed(2)}</td>
+                        <td
+                          className={
+                            position.pnl >= 0
+                              ? "text-green-500"
+                              : "text-red-500"
+                          }
+                        >
+                          {position.pnl >= 0 ? "+" : ""}
+                          {position.pnl.toFixed(2)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p className="text-gray-400">No positions available.</p>
+              )}
+            </div>
           </div>
         </div>
       </div>
