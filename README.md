@@ -80,8 +80,9 @@ http://localhost:3000
 
 ## GitHub Repository
 
-[Arcadia.pump GitHub Repository](https://github.com/M-DEV-1/arcadia-meme)
+[MEMECO is your gateway to the fun and speculative world of memecoins. Boldly take on the next 100x challenge while learning the essentials of crypto trading!
+ GitHub Repository](https://github.com/M-DEV-1/arcadia-meme)
 
 ---
 
-Arcadia.pump is your gateway to the fun and speculative world of memecoins. Boldly take on the next 100x challenge while learning the essentials of crypto trading!
+MEMECO is your gateway to the fun and speculative world of memecoins. Boldly take on the next 100x challenge while learning the essentials of crypto trading!

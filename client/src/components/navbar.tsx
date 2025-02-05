@@ -133,7 +133,7 @@ export const Navbar: React.FC = () => {
             href="/"
             className="ml-2 text-2xl font-bold bg-gradient-to-r from-yellow-500 via-emerald-400 to-yellow-500 bg-clip-text text-transparent"
           >
-            arcadia-meme
+            MEMECO.
           </a>
         </div>
 
