@@ -25,7 +25,7 @@ export interface WalletContextType {
 
 const WalletContext = createContext<WalletContextType | null>(null);
 
-new AptosConfig({ network: Network.TESTNET }); // Initialize network config
+new AptosConfig({ network: Network.MAINNET }); // Initialize network config
 
 export function WalletProvider({ children }: { children: React.ReactNode }) {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
